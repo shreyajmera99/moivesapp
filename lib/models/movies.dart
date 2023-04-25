@@ -6,6 +6,7 @@ final String title;
 final String year;
 final String imdbID;
 final String poster;
+final String Type;
 
 
 Movie({
@@ -13,7 +14,7 @@ required this.title,
 required this.year,
 required this.imdbID,
 required this.poster,
-
+required this.Type
 });
 
 factory Movie.fromJson(Map<String, dynamic> json) {
@@ -22,7 +23,7 @@ title: json['Title'] as String,
 year: json['Year'] as String,
 imdbID: json['imdbID'] as String,
 poster: json['Poster'] as String,
-
+Type: json['Type'] as String,
 );
 }
 }

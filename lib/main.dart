@@ -32,6 +32,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late List<Movie> _movies;
   bool _isLoading = true;
+ 
+
+
 
   @override
   void initState() {
@@ -53,20 +56,7 @@ class _HomePageState extends State<HomePage> {
       throw Exception('Failed to fetch movies');
     }
   }
-Shader _getRandomColor() {
-  final Random random = Random();
-  final int r = random.nextInt(256);
-  final int g = random.nextInt(256);
-  final int b = random.nextInt(256);
-  final int a = random.nextInt(128) + 128; // Opacity range: 0.5 to 1.0
-  final Color color1 = Color.fromRGBO(r, g, b, 1.0);
-  final Color color2 = Color.fromRGBO(r, g, b, 0.5);
-  return LinearGradient(
-    colors: [color1, color2],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  ).createShader(Rect.fromLTRB(0, 0, 100, 100));
-}
+
 
 
   @override
@@ -80,7 +70,7 @@ Shader _getRandomColor() {
     color: Colors.black,
     ),
     onPressed: () {
-      // handle menu button press
+     // Navigator.pushNamed(context, Movie)
     },
   ),
    titleSpacing: 16,
@@ -102,54 +92,95 @@ Shader _getRandomColor() {
               itemCount: _movies.length,
               itemBuilder: (context, index) => 
               Padding(
-  padding: EdgeInsets.all(10),
+  padding: EdgeInsets.only(top: 8, left: 20,right: 20,bottom: 5),
   child: SizedBox(
-    width: 130,
-    height: 120,
+    width: 140,
+    height: 145,
+    child: Container(
+      decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(20) ,
+    gradient:LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: RandomGradient.generate(numColors: 2, width: 130, height: 120)
+          .colors,
+    ),  
+     
+  ),
+  
         child: Card(
-            color: Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0),
-
+           elevation:0,
+               color: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20)
           ),
+
           child: InkWell(
         onTap: () => {Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => MovieDetailsPage(imdbID: _movies[index].imdbID),
       ))},
-      child : Center(
-           child: ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.0,vertical: 10),
-            leading: SizedBox(
-              width: 48,
-             height: 4800,
-             child: Image.network( _movies[index].poster,
-              height: 180,
-              width: 60,
-              fit: BoxFit.cover,
-            ),
-            ),
-            title:    Text(_movies[index].title,
-            textAlign: TextAlign.left,
-            style:TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 15
-            ),
-            ),
-           subtitle: Text("Movie",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white
-            ),
-            ),
-            trailing: const Icon(Icons.star,
-            color: Colors.yellow,
-            ),
-            ),
-
+      child: Row(
+  children: [
+    Expanded(
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+        leading: SizedBox(
+          width: 40,
+          height: 180,
+           child: ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: Image.network(
+            _movies[index].poster,
+            height: 180,
+            width: 60,
+            fit: BoxFit.cover,
           ),
+        )),
+        title: Text(
+          _movies[index].title,
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 15,
+          ),
+        ),
+        subtitle: Text(
+          _movies[index].Type,
+           style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 13,
+          ),
+        ),
+        trailing: Container(
+          width: 80,
+          padding: EdgeInsets.only(top: 40),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.star,
+                color: Colors.yellow,
+              ),
+              SizedBox(width: 4),
+              Text(
+                _movies[index].year,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  ],
+))
+,
           
         ),
       ),
@@ -173,6 +204,7 @@ class MovieDetailsPage extends StatefulWidget {
 class _MovieDetailsPageState extends State<MovieDetailsPage> {
   MovieDetails? _movieDetails;
   bool _isLoading = true;
+   bool _isPressed = false;
 
   @override
   void initState() {
@@ -200,22 +232,32 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
     return Scaffold(
     appBar: AppBar(
       elevation: 0,
-  backgroundColor: Colors.pinkAccent,
+        backgroundColor:  Color.fromRGBO(218, 129, 159, 1),
+
   leading: IconButton(
     icon: Icon(Icons.arrow_back_ios),
     onPressed: () {
-      // handle menu button press
+     Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
     },
   ),
   titleSpacing: 16,
   actions: [
     IconButton(
       icon: Icon(Icons.star,
-      color: Colors.yellow,
+     color: _isPressed ? Colors.yellow : Colors.white,
       ),
       onPressed: () {
-        // handle search button press
+         setState(() {
+          _isPressed = !_isPressed;
+        });
+         ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added to Favorites'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       },
+      
     ),
     
   ],
@@ -223,11 +265,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
        body:_isLoading
           ? Center(
             child: CircularProgressIndicator())
-: Scaffold(
-    resizeToAvoidBottomInset: false,
-    backgroundColor: Colors.pinkAccent.withOpacity(0.8),
-    body
-    :Container(
+:Container(
        decoration: BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topCenter,
@@ -236,6 +274,25 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
           Colors.pink[400]!,
           Colors.pink[800]!,
         ],
+      ),
+    ),
+child:
+ Scaffold(
+    resizeToAvoidBottomInset: false,
+   backgroundColor:   Color.fromARGB(255, 233, 76, 128),
+    body:
+    SingleChildScrollView(
+      child
+    :Container(
+       decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.bottomLeft,
+        end: Alignment.topLeft,
+        colors: [
+          Color.fromARGB(255, 233, 76, 128),
+          Color.fromRGBO(218, 129, 159, 1),
+        ],
+        
       ),
     ),
       child: Column(
@@ -378,7 +435,8 @@ SizedBox(height: 10,),
         Container(
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
 
-          color: Colors.pinkAccent.withOpacity(0.3), 
+          color:  Color.fromARGB(255, 228, 112, 151),
+
   child: Column(
   crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -511,12 +569,35 @@ Row(
         
       ],
     ),
-  ],
-)
 
     
+  ],
 
-    ]),)
-  )
-  );
-  }}
+)
+
+]
+),
+)
+)
+)
+)
+);
+}
+}
+
+class RandomGradient {
+  static LinearGradient generate({int numColors = 3, double width = 200.0, double height = 70.0}) {
+    List<Color> colors = [];
+
+    // Generate a set of random colors
+    for (int i = 0; i < numColors; i++) {
+      colors.add(Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0));
+    }
+
+    // Create a gradient using the random colors
+    return LinearGradient(
+      colors: colors,
+    );
+  }
+}
+
